@@ -44,8 +44,8 @@ declare module 'styled-components' {
 export const defaultTheme: DefaultTheme = {
   palette: {
     common: {
-      blackSquare: '#000000',
-      whiteSquare: '#ffffff'
+      blackSquare: '#8f0200',
+      whiteSquare: '#ffafad'
     },
     main: {
       background: "#BFEAFF",
