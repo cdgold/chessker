@@ -18,6 +18,7 @@ module.exports = {
   },
   plugins: ['react-refresh'],
   rules: {
+    "indent": ["warn", 2],
     "no-unused-vars": ["warn"],
     'react-refresh/only-export-components': [
       'warn',
