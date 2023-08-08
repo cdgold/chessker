@@ -5,8 +5,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChessKing, faChessQueen, faChessRook, faChessBishop, faChessKnight, faChessPawn } from "@fortawesome/free-solid-svg-icons"
 import { COLOR, PIECE_TYPE, COLUMN_LETTER, ROW_NUMBER } from "../types/chess" 
 
+interface PieceContainerProps{
+  $isFlipped: boolean,
+  $isDraggable: boolean
+}
 
-const PieceContainer = styled.div`
+const PieceContainer = styled.div<PieceContainerProps>`
   touch-action: none;
   width: min-content;
   font-size: 50px;
@@ -14,12 +18,20 @@ const PieceContainer = styled.div`
   
   position: relative;
   z-index: 100;
-  
-  &: hover {
-    cursor: pointer;
-  }
+  ${props =>
+    props.$isDraggable ?
+      `&: hover {
+        cursor: pointer;
+      }`
+      : null
+}
+
+  ${props => props.$isFlipped ? "transform: rotate(180deg);" : null}
 `
 
+const DraggableContainer = styled.div`
+  place-self: center;
+`
 
 interface DraggablePieceProps {
   id: string,
@@ -27,12 +39,10 @@ interface DraggablePieceProps {
   color: COLOR,
   type: PIECE_TYPE,
   column: COLUMN_LETTER,
-  row: ROW_NUMBER
+  row: ROW_NUMBER,
+  isFlipped: boolean,
+  isDraggable: boolean
 }
-
-const DraggableContainer = styled.div`
-  place-self: center;
-`
 
 const DraggablePiece = (props : DraggablePieceProps) => {
   const {attributes, listeners, setNodeRef, transform} = useDraggable({
@@ -44,16 +54,30 @@ const DraggablePiece = (props : DraggablePieceProps) => {
       row: props.row
     }
   });
+  let translateString = ""
+  if (transform){
+    props.isFlipped
+      ? translateString = `translate3d(${transform.x * -1}px, ${transform.y * -1}px, 0)` 
+      : translateString = `translate3d(${transform.x}px, ${transform.y}px, 0)`
+  }
+  //console.log("props.isFlipped? ", props.isFlipped)
   const style = transform ? {
-    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    transform: translateString,
     zIndex: 200
   }
     : undefined;
 
-  return (
-    <DraggableContainer ref={setNodeRef} style={style} {...listeners} {...attributes}>
+  if (props.isDraggable){
+    return (
+      <DraggableContainer ref={setNodeRef} style={style} {...listeners} {...attributes}>
+        {props.children}
+      </DraggableContainer>
+    )
+  }
+  return(
+    <>
       {props.children}
-    </DraggableContainer>
+    </>
   )
 }
 
@@ -102,18 +126,21 @@ interface ChessPieceProps {
   color: COLOR,
   id: string,
   column: COLUMN_LETTER,
-  row: ROW_NUMBER
+  row: ROW_NUMBER,
+  playerColor: COLOR
 }
 
 const ChessPiece = (props : ChessPieceProps) => {
+  const isFlipped = (props.playerColor === COLOR.WHITE) ? true : false
+  const isDraggable = (props.playerColor === props.color)
   let showColor : string = ""
   props.color === COLOR.WHITE ?  showColor = "white" : showColor = "black"
 
-  return (
-    <DraggablePiece id={props.id} type={props.type} color={props.color} column={props.column} row={props.row}>
-      <PieceContainer>
+  return(
+    <DraggablePiece isDraggable={isDraggable} id={props.id} type={props.type} color={props.color} column={props.column} row={props.row} isFlipped={isFlipped} >
+      <PieceContainer $isFlipped={isFlipped} $isDraggable={isDraggable} >
         <span style={{ color: showColor }}>
-          <DisplayPiece type={props.type} />
+          <DisplayPiece type={props.type}/>
         </span>
       </PieceContainer>
     </DraggablePiece>

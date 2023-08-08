@@ -8,19 +8,23 @@ import React, { useState, useEffect, ReactNode } from "react"
 import styled from "styled-components"
 import {DndContext, useDroppable } from "@dnd-kit/core"
 import ChessPiece from "./ChessPiece"
-import { COLOR, PIECE_TYPE, COLUMN_LETTER, ROW_NUMBER, ChessSquare } from "../types/chess" 
+import { COLOR, PIECE_TYPE, ChessSquare } from "../types/chess" 
 import { checkMoveLegality, checkKingSafety, calcSquareNum } from "../gameLogic/chessLogic"
 
 const NUM_ROWS = 8
 const NUM_COLUMNS = 8
 
-// make hover square better looking
-// incorporate knight checks
+// checkmate checking
+// track if its player's turn
 // include castling, en passant
-// include promotion
+// include promotionS
 // switch on display piece
 
-const BoardContainer = styled.div`
+interface BoardContainerProps{
+  $isFlipped: boolean
+}
+
+const BoardContainer = styled.div<BoardContainerProps>`
   width: 100%;
   height: 100%;
   background-color: black;
@@ -28,6 +32,7 @@ const BoardContainer = styled.div`
   flex-wrap: wrap;
   gap: 0;
   position: relative;
+  ${props => props.$isFlipped ? "transform: rotate(180deg)" : null}
 `
 
 interface SquareContainerProps{
@@ -48,7 +53,8 @@ const SquareContainer = styled.div<SquareContainerProps>`
 `
 
 interface SquareProps {
-  square: ChessSquare
+  square: ChessSquare,
+  playerColor: COLOR
 }
 
 const Square = (props : SquareProps) => {
@@ -70,6 +76,7 @@ const Square = (props : SquareProps) => {
           id={`pc${props.square.column}r${props.square.row}`} 
           column={props.square.column}
           row={props.square.row}
+          playerColor={props.playerColor}
         />
       </SquareContainer>
     )
@@ -81,7 +88,11 @@ const Square = (props : SquareProps) => {
   )
 }
 
-const ChessBoard = () => {
+interface ChessBoardProps {
+  playerColor: COLOR
+}
+
+const ChessBoard = (props : ChessBoardProps) => {
   const [squares, setSquares] = useState<ChessSquare[]>([])
 
   let currentWhite = false
@@ -141,7 +152,13 @@ const ChessBoard = () => {
 
 
   const mappedSquares = squares.map((square) => {
-    return(<Square key={`c${square.column}r${square.row}`} square={square} />)
+    return(
+      <Square 
+        key={`c${square.column}r${square.row}`} 
+        square={square} 
+        playerColor={props.playerColor} 
+      />
+    )
   })
 
   function handleDragEnd(event: any) {
@@ -185,7 +202,7 @@ const ChessBoard = () => {
 
   return(
     <DndContext onDragEnd={handleDragEnd}>
-      <BoardContainer>
+      <BoardContainer $isFlipped={props.playerColor === COLOR.WHITE}>
         {mappedSquares}
       </BoardContainer>
     </DndContext>

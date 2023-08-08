@@ -3,6 +3,11 @@ import styled from "styled-components"
 import ChessBoard from "./components/ChessBoard"
 import { useSocket } from "./hooks/useSocket"
 import { Socket } from "socket.io-client"
+import { COLOR } from "./types/chess"
+
+interface ServerToClientEvents {
+  set_player_color: () => void;
+}
 
 const BoardContainer = styled.div`
   height: 600px;
@@ -24,6 +29,7 @@ function App() {
   const [clientID, setClientID] = useState<string | undefined>(undefined)
   const [roomID, setRoomID] = useState<string | undefined>(undefined)
   const [joinRoomInput, setJoinRoomInput] = useState<string>("")
+  const [chessColor, setChessColor] = useState<COLOR>(COLOR.BLACK)
   
   const socket = useSocket(`ws://${API_URL}`, {
     reconnectionAttempts: 4,
@@ -57,6 +63,10 @@ function App() {
 
     socket.io.on("reconnect_failed", () => {
       window.alert("Error in connection attempt.")
+    })
+
+    socket.on("set_player_color", (color: string) => {
+      setChessColor(color as COLOR)
     })
   }
 
@@ -103,7 +113,7 @@ function App() {
         <button onClick={() => { joinRoom() }}> join </button>
       </div>
       <BoardContainer>
-        <ChessBoard />
+        <ChessBoard playerColor={chessColor} />
       </BoardContainer>
       {socketConnection === undefined || socketConnection.connected === false ?
         <NewGameButton onClick={() => connect()}> Connect to server </NewGameButton>
